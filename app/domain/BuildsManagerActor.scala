@@ -43,7 +43,7 @@ object BuildsManagerActor {
     containsBrokenBuild(builds) && !containsBuildInProgress(builds)
 
   def containsBrokenBuild(builds: Set[BuildStatus]) =
-    builds.exists(_.isBroken)
+    builds.exists(_.isFailed)
 
   def containsBuildInProgress(builds: Set[BuildStatus]) =
     builds.exists(_.isInProgress)
