@@ -14,13 +14,15 @@ object ApplicationBuild extends Build {
   )
 
   val akkaVersion = "2.1.0"
+  val mockitoVersion = "1.9.0"
   val scalatestVersion = "1.9.1"
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     libraryDependencies ++= List(
       "com.typesafe.akka" %% "akka-actor" % akkaVersion withSources(),
-      "com.typesafe.akka" %% "akka-testkit" % akkaVersion withSources(),
-      "org.scalatest" %% "scalatest" % scalatestVersion % "test " withSources()
+      "com.typesafe.akka" %% "akka-testkit" % akkaVersion  % "test" withSources(),
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test" withSources(),
+      "org.mockito" % "mockito-core" % mockitoVersion % "test" withSources()
     )
   )
 }

@@ -4,7 +4,8 @@ import akka.actor.{ActorRef, Actor}
 import akka.pattern.{ask, pipe}
 import domain.StatusReaderCommands._
 import concurrent.Future
-import domain.JenkinsCommands.ReadBuildStatus
+import jenkins.JenkinsCommands
+import JenkinsCommands.ReadBuildStatus
 import akka.util.Timeout
 import concurrent.duration._
 
