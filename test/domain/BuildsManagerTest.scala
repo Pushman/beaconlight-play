@@ -11,9 +11,10 @@ import domain.StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 
 class BuildsManagerTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
 
-  private val successfulBuild: BuildStatus = BuildStatus(false, false)
-  private val failedBuild: BuildStatus = BuildStatus(true, false)
-  private val failedBuildInProgress: BuildStatus = BuildStatus(true, true)
+  private val buildIdentifier = BuildIdentifier("some build")
+  private val successfulBuild = Build(buildIdentifier, BuildStatus(false, false))
+  private val failedBuild = Build(buildIdentifier, BuildStatus(true, false))
+  private val failedBuildInProgress = Build(buildIdentifier, BuildStatus(true, true))
 
   private val beaconLight = TestProbe()
   private val statusReader = TestProbe()

@@ -33,7 +33,7 @@ class StatusReaderActorTest extends TestKit(ActorSystem("test")) with WordSpec w
 
     actor ! RegisterObservedBuild(buildIdentifier)
     actor ! RegisterObservedBuild(secondBuildIdentifier)
-    
+
     "getting build statuses" should {
       implicit val sender = testActor
       actor ! ReadBuildsStatuses
@@ -45,7 +45,8 @@ class StatusReaderActorTest extends TestKit(ActorSystem("test")) with WordSpec w
         statusReader.reply(failedBuild)
       }
       "return builds summary" in {
-        expectMsg(BuildsStatusSummary(Set(successfulBuild, failedBuild)))
+        expectMsg(BuildsStatusSummary(Set(Build(buildIdentifier, successfulBuild),
+          Build(secondBuildIdentifier, failedBuild))))
       }
     }
   }

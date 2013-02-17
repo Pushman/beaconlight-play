@@ -9,7 +9,7 @@ import JenkinsCommands.ReadBuildStatus
 import akka.util.Timeout
 import concurrent.duration._
 
-class StatusReaderActor(statusReader: ActorRef) extends Actor {
+class StatusReaderActor(jenkins: ActorRef) extends Actor {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -24,8 +24,8 @@ class StatusReaderActor(statusReader: ActorRef) extends Actor {
       Future.sequence(observedBuilds.map(readBuildStatus)).map(BuildsStatusSummary) pipeTo sender
   }
 
-  private def readBuildStatus(build: BuildIdentifier) =
-    (statusReader ? ReadBuildStatus(build)).mapTo[BuildStatus]
+  private def readBuildStatus(identifier: BuildIdentifier) =
+    (jenkins ? ReadBuildStatus(identifier)).mapTo[BuildStatus].map(status => Build(identifier, status))
 }
 
 object StatusReaderCommands {
@@ -34,6 +34,6 @@ object StatusReaderCommands {
 
   case object ReadBuildsStatuses
 
-  case class BuildsStatusSummary(builds: Set[BuildStatus])
+  case class BuildsStatusSummary(builds: Set[Build])
 
 }

@@ -3,7 +3,7 @@ package domain.jenkins
 import akka.actor.Actor
 import akka.pattern.pipe
 import domain.jenkins.JenkinsCommands.ReadBuildStatus
-import domain.BuildIdentifier
+import domain.{Build, BuildIdentifier}
 
 class JenkinsActor(server: JenkinsServer, parser: JenkinsJsonStatusParser) extends Actor {
   import scala.concurrent.ExecutionContext.Implicits.global

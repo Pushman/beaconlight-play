@@ -19,7 +19,7 @@ class BuildsManagerActor(beaconLight: ActorRef, statusReader: ActorRef) extends 
   var enabled: Boolean = true
 
   override def receive = {
-    case CheckStatus if enabled ⇒ {
+    case CheckStatus if enabled ⇒
       readBuildStatuses.map {
         summary =>
           if (containsUnhandledBrokenBuild(summary.builds))
@@ -27,7 +27,6 @@ class BuildsManagerActor(beaconLight: ActorRef, statusReader: ActorRef) extends 
           else
             beaconLight ! Stop
       }
-    }
 
     case Enable ⇒ enabled = true
     case Disable ⇒ enabled = false
@@ -39,14 +38,14 @@ class BuildsManagerActor(beaconLight: ActorRef, statusReader: ActorRef) extends 
 
 object BuildsManagerActor {
 
-  def containsUnhandledBrokenBuild(builds: Set[BuildStatus]) =
+  def containsUnhandledBrokenBuild(builds: Set[Build]) =
     containsBrokenBuild(builds) && !containsBuildInProgress(builds)
 
-  def containsBrokenBuild(builds: Set[BuildStatus]) =
-    builds.exists(_.isFailed)
+  def containsBrokenBuild(builds: Set[Build]) =
+    builds.exists(_.status.isFailed)
 
-  def containsBuildInProgress(builds: Set[BuildStatus]) =
-    builds.exists(_.isInProgress)
+  def containsBuildInProgress(builds: Set[Build]) =
+    builds.exists(_.status.isInProgress)
 }
 
 object BuildsManagerCommands {
