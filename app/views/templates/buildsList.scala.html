@@ -1,0 +1,26 @@
+@(builds: Set[domain.Build])
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>
+            Job name
+        </th>
+        <th>
+            Failed
+        </th>
+        <th>
+            In progress
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    @for(build <- builds) {
+    <tr class='@if(build.status.isFailed) {error}'>
+        <td>@build.identifier.name</td>
+        <td>@build.status.isFailed</td>
+        <td>@build.status.isInProgress</td>
+    </tr>
+    }
+    </tbody>
+</table>

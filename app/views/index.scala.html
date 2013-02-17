@@ -1,7 +1,7 @@
-@(message: String)
+@(builds: Set[domain.Build])
 
-@main("Welcome to Play 2.1") {
-    
-    @play20.welcome(message)
-    
+@import templates.buildsList
+
+@main("Builds list") {
+    @buildsList(builds)
 }
