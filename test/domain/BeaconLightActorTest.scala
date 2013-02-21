@@ -14,20 +14,22 @@ class BeaconLightActorTest extends TestKit(ActorSystem("test")) with WordSpec wi
   val activeTime = (500 micro)
   val sleepingTime = (800 micro)
   val error = (100 micro)
-  
+
   "Stopped Beacon Light Actor" when {
     "activated" should {
-      "turn capsLock on and change state to Sleep after timeout" in {
-        val actor = TestFSMRef(new BeaconLightActor(testActor, activeTime, sleepingTime))
+      val actor = TestFSMRef(new BeaconLightActor(testActor, activeTime, sleepingTime))
 
+      "turn capsLock on" in {
         actor ! Activate
         expectMsg(TurnOn)
         actor.stateName should be(Active)
-        
+      }
+      "change state to Sleep after timeout" in {
         expectNoMsg(activeTime - error)
         expectMsg(TurnOff)
         actor.stateName should be(Sleeping)
-
+      }
+      "turn on again after timeout" in {
         expectNoMsg(sleepingTime - error)
         expectMsg(TurnOn)
         actor.stateName should be(Active)
@@ -36,11 +38,11 @@ class BeaconLightActorTest extends TestKit(ActorSystem("test")) with WordSpec wi
   }
   "Activated Beacon Light Actor" when {
     "stopped" should {
-      "turn capsLock off" in {
-        val actor = TestFSMRef(new BeaconLightActor(testActor, activeTime, sleepingTime))
-        actor.setState(Active)
-        expectMsg(TurnOn)
+      val actor = TestFSMRef(new BeaconLightActor(testActor, activeTime, sleepingTime))
+      actor.setState(Active)
+      expectMsg(TurnOn)
 
+      "turn capsLock off" in {
         actor ! Stop
         expectMsg(TurnOff)
         expectNoMsg(activeTime - error)

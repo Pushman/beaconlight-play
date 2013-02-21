@@ -1,7 +1,8 @@
-@(builds: Set[domain.Build])
+@(builds: Set[domain.Build], form: Form[String])
 
-@import templates.buildsList
+@import templates._
 
-@main("Builds list") {
+@main("Beacon Light Driver") {
     @buildsList(builds)
+    @addBuild(form)
 }

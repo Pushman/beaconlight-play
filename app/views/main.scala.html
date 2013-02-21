@@ -16,6 +16,14 @@
                 <h1>@title</h1>
             </div>
             @content
+            
+            <div>
+                @helper.form(action = routes.Application.checkStatus) {
+                    <button class="btn">
+                        Force status check
+                    </button>
+                }
+            </div>
         </div>
     </div>
     </body>

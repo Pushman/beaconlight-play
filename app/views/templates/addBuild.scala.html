@@ -1,0 +1,9 @@
+@(form: Form[String])
+
+<h2>Add build</h2>
+
+@helper.form(action = routes.Application.addBuild) {
+
+    @helper.inputText(form("buildName"))
+
+}
