@@ -1,10 +1,8 @@
 package util
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 
-trait LoggedActor extends Actor {
-
-  private val log = akka.event.Logging(context.system, this)
+trait LoggedActor extends Actor with ActorLogging {
 
   abstract override def receive = {
     case any => {

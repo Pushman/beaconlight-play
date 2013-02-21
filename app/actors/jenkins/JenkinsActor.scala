@@ -1,11 +1,13 @@
-package domain.jenkins
+package actors.jenkins
 
 import akka.actor.Actor
 import akka.pattern.pipe
-import domain.jenkins.JenkinsCommands.ReadBuildStatus
-import domain.{Build, BuildIdentifier}
+import domain.BuildIdentifier
+import domain.jenkins.{JenkinsJsonStatusParser, JenkinsServer}
+import JenkinsCommands._
 
 class JenkinsActor(server: JenkinsServer, parser: JenkinsJsonStatusParser) extends Actor {
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def receive = {

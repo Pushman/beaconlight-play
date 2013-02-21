@@ -1,4 +1,4 @@
-package domain
+package actors
 
 import akka.actor.Actor
 
@@ -6,7 +6,7 @@ class CapsLockActor extends Actor {
   def receive = ???
 }
 
-object CapsLockActorCommands {
+object CapsLockCommands {
 
   case object TurnOn
 

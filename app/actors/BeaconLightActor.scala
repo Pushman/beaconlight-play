@@ -1,10 +1,10 @@
-package domain
+package actors
 
 import akka.actor.{ActorRef, FSM, Actor}
 import concurrent.duration._
-import BeaconLightActorStates._
-import BeaconLightActorCommands._
-import domain.CapsLockActorCommands.{TurnOff, TurnOn}
+import BeaconLightStates._
+import BeaconLightCommands._
+import CapsLockCommands.{TurnOff, TurnOn}
 
 class BeaconLightActor(capsLock: ActorRef, activeTime: FiniteDuration, sleepingTime: FiniteDuration) 
   extends Actor with FSM[State, Null] {
@@ -12,8 +12,9 @@ class BeaconLightActor(capsLock: ActorRef, activeTime: FiniteDuration, sleepingT
   startWith(Stopped, null)
 
   when(Stopped) {
-    case Event(Activate, _) ⇒
+    case Event(Activate, _) ⇒ {
       goto(Active)
+    }
   }
 
   when(Active, stateTimeout = activeTime) {
@@ -32,16 +33,20 @@ class BeaconLightActor(capsLock: ActorRef, activeTime: FiniteDuration, sleepingT
   }
 
   onTransition {
-    case _ -> Active ⇒
+    case Stopped -> Active | Sleeping -> Active ⇒ {
+      log.debug("TurnOn")
       capsLock ! TurnOn
-    case Active -> _ ⇒
+    }
+    case Active -> Stopped | Active -> Sleeping ⇒ {
+      log.debug("TurnOff")
       capsLock ! TurnOff
+    }
   }
 
   initialize
 }
 
-object BeaconLightActorStates {
+object BeaconLightStates {
 
   sealed trait State
 
@@ -53,7 +58,7 @@ object BeaconLightActorStates {
 
 }
 
-object BeaconLightActorCommands {
+object BeaconLightCommands {
 
   sealed trait BeaconLightAction
   

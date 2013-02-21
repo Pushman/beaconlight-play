@@ -3,25 +3,29 @@ package controllers
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
 import domain._
-import domain.jenkins.{JenkinsJsonStatusParserImpl, JenkinsServerImpl, JenkinsActor}
+import domain.jenkins.{JenkinsJsonStatusParserImpl, JenkinsServerImpl}
 import akka.actor.{ActorLogging, Actor, Props}
-import domain.StatusReaderCommands.ReadBuildsStatuses
+import actors._
+import domain.BuildIdentifier
+import play.api.mvc.AsyncResult
+import play.api.mvc.SimpleResult
+import StatusReaderCommands.ReadBuildsStatuses
 import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.duration._
 import util.LoggedActor
-import actors.BuildsManagerCommands
+import actors.{StatusReaderActor, BeaconLightActor, BuildsManagerCommands, BuildsManagerActor}
 import BuildsManagerCommands.CheckStatus
-import domain.StatusReaderCommands.RegisterObservedBuild
+import StatusReaderCommands.RegisterObservedBuild
 import domain.BuildIdentifier
 import play.api.mvc.AsyncResult
-import domain.StatusReaderCommands.BuildsStatusSummary
+import StatusReaderCommands.BuildsStatusSummary
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
-import actors.BuildsManagerActor
+import actors.jenkins.JenkinsActor
 
 object Application extends Controller {
 
@@ -50,7 +54,7 @@ object Application extends Controller {
   }))
   private val beaconLightStrategy = new BeaconLightStrategyImpl
 
-  val beaconLight = Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
+  val beaconLight = null //Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
   val buildManager = Akka.system.actorOf(Props(new BuildsManagerActor(beaconLight, statusReader, beaconLightStrategy)))
 
   def index = Action {

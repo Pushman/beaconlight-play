@@ -1,11 +1,12 @@
-package domain
+package actors
 
 import akka.testkit.{TestProbe, TestActorRef, TestKit}
 import akka.actor.ActorSystem
 import jenkins.JenkinsCommands
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
-import domain.StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses, RegisterObservedBuild}
+import StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses, RegisterObservedBuild}
+import domain.{Build, BuildStatus, BuildIdentifier}
 import JenkinsCommands.ReadBuildStatus
 
 class StatusReaderActorTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {

@@ -6,8 +6,8 @@ import akka.actor.ActorSystem
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
 import BuildsManagerCommands.{Disable, CheckStatus}
-import domain.BeaconLightActorCommands.{Stop, Activate}
-import domain.StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
+import BeaconLightCommands.Stop
+import StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 import org.mockito.Mockito.{mock, verify}
 import org.mockito.BDDMockito.given
 import domain.{BuildStatus, Build, BuildIdentifier, BeaconLightStrategy}

@@ -1,13 +1,14 @@
-package domain
+package actors
 
 import akka.actor.{ActorRef, Actor}
 import akka.pattern.{ask, pipe}
-import domain.StatusReaderCommands._
 import concurrent.Future
-import jenkins.JenkinsCommands
-import JenkinsCommands.ReadBuildStatus
 import akka.util.Timeout
 import concurrent.duration._
+import domain.{Build, BuildStatus, BuildIdentifier}
+import jenkins.JenkinsCommands
+import JenkinsCommands.ReadBuildStatus
+import StatusReaderCommands._
 
 class StatusReaderActor(jenkins: ActorRef) extends Actor {
 

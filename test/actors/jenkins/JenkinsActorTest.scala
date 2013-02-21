@@ -1,4 +1,4 @@
-package domain.jenkins
+package actors.jenkins
 
 import akka.testkit.{TestActorRef, TestKit}
 import akka.actor.ActorSystem
@@ -9,6 +9,7 @@ import org.mockito.Mockito.{mock, when, verify}
 import concurrent.Promise
 import play.api.libs.json.Json
 import domain.{BuildStatus, BuildIdentifier}
+import domain.jenkins.{JenkinsJsonStatusParser, JenkinsServer}
 
 class JenkinsActorTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
 

@@ -1,11 +1,12 @@
-package domain
+package actors
 
-import akka.testkit.{TestProbe, TestKit}
+import akka.testkit.TestKit
 import akka.actor.ActorSystem
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
-import domain.BeaconLightActorCommands.{BeaconLightAction, Stop, Activate}
-import domain.StatusReaderCommands.BuildsStatusSummary
+import BeaconLightCommands.{BeaconLightAction, Stop, Activate}
+import StatusReaderCommands.BuildsStatusSummary
+import domain.{BeaconLightStrategyImpl, BuildStatus, Build, BuildIdentifier}
 
 class BeaconLightStrategyTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
 
