@@ -10,7 +10,8 @@ import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.duration._
 import util.LoggedActor
-import domain.BuildsManagerCommands.CheckStatus
+import actors.BuildsManagerCommands
+import BuildsManagerCommands.CheckStatus
 import domain.StatusReaderCommands.RegisterObservedBuild
 import domain.BuildIdentifier
 import play.api.mvc.AsyncResult
@@ -20,6 +21,7 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
+import actors.BuildsManagerActor
 
 object Application extends Controller {
 
@@ -46,9 +48,10 @@ object Application extends Controller {
       }
     }
   }))
+  private val beaconLightStrategy = new BeaconLightStrategyImpl
 
   val beaconLight = Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
-  val buildManager = Akka.system.actorOf(Props(new BuildsManagerActor(beaconLight, statusReader)))
+  val buildManager = Akka.system.actorOf(Props(new BuildsManagerActor(beaconLight, statusReader, beaconLightStrategy)))
 
   def index = Action {
     AsyncResult {

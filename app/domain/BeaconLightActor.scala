@@ -55,10 +55,12 @@ object BeaconLightActorStates {
 
 object BeaconLightActorCommands {
 
-  case object Activate
-
-  case object Stop
+  sealed trait BeaconLightAction
   
-  case object Sleep
+  case object Activate extends BeaconLightAction
+
+  case object Stop extends BeaconLightAction
+  
+  case object Sleep extends BeaconLightAction
 
 }
