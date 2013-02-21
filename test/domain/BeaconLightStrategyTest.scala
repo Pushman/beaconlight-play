@@ -4,7 +4,7 @@ import akka.testkit.{TestProbe, TestKit}
 import akka.actor.ActorSystem
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
-import domain.BeaconLightActorCommands.{Stop, Activate}
+import domain.BeaconLightActorCommands.{BeaconLightAction, Stop, Activate}
 import domain.StatusReaderCommands.BuildsStatusSummary
 
 class BeaconLightStrategyTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
@@ -17,26 +17,18 @@ class BeaconLightStrategyTest extends TestKit(ActorSystem("test")) with WordSpec
   "Beacon Light Strategy" when {
     val beaconLightStrategy = new BeaconLightStrategyImpl
 
-    "getting action for successful builds" should {
-      val action = beaconLightStrategy.commandFor(BuildsStatusSummary(Set(successfulBuild)))
+    test("successful builds", Set(successfulBuild), Stop)
+    test("build in progress", Set(failedBuild, failedBuildInProgress), Stop)
+    test("failed builds", Set(successfulBuild, failedBuild), Activate)
 
-      "return Activate action" in {
-        action should be(Stop)
+    def test(description: String, givenBuilds: Set[Build], expectedAction: BeaconLightAction) {
+      s"getting action for $description" should {
+        val action = beaconLightStrategy.commandFor(BuildsStatusSummary(givenBuilds))
+
+        s"return $expectedAction action" in {
+          action should be(expectedAction)
+        }
       }
     }
-    "getting action for build in progress" should {
-      val action = beaconLightStrategy.commandFor(BuildsStatusSummary(Set(failedBuild, failedBuildInProgress)))
-
-      "return Activate action" in {
-        action should be(Stop)
-      }
-    }
-    "getting action for failed builds" should {
-      val action = beaconLightStrategy.commandFor(BuildsStatusSummary(Set(successfulBuild, failedBuild)))
-
-      "return Stop action" in {
-        action should be(Activate)
-      }
-    }
-  }
+  }  
 }
