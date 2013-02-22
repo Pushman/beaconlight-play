@@ -33,14 +33,11 @@ class BeaconLightActor(capsLock: ActorRef, activeTime: FiniteDuration, sleepingT
   }
 
   onTransition {
-    case Stopped -> Active | Sleeping -> Active ⇒ {
-      log.debug("TurnOn")
+    case _ -> Active ⇒
       capsLock ! TurnOn
-    }
-    case Active -> Stopped | Active -> Sleeping ⇒ {
-      log.debug("TurnOff")
+
+    case Active -> _ ⇒
       capsLock ! TurnOff
-    }
   }
 
   initialize

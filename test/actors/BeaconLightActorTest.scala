@@ -10,7 +10,9 @@ import CapsLockCommands.{TurnOff, TurnOn}
 import BeaconLightStates.{Stopped, Sleeping, Active}
 import util.LoggedActor
 
-class BeaconLightActorTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
+class BeaconLightActorTest extends WordSpec with ShouldMatchers {
+
+  implicit val system = ActorSystem("test")
 
   val activeTime = (5 milli)
   val sleepingTime = (8 milli)
@@ -27,12 +29,12 @@ class BeaconLightActorTest extends TestKit(ActorSystem("test")) with WordSpec wi
         actor.stateName should be(Active)
       }
       "change state to Sleep after timeout" in {
-        expectNoMsg(activeTime - error)
+        capsLock.expectNoMsg(activeTime - error)
         capsLock.expectMsg(TurnOff)
         actor.stateName should be(Sleeping)
       }
       "turn on again after timeout" in {
-        expectNoMsg(sleepingTime - error)
+        capsLock.expectNoMsg(sleepingTime - error)
         capsLock.expectMsg(TurnOn)
         actor.stateName should be(Active)
       }
@@ -50,7 +52,7 @@ class BeaconLightActorTest extends TestKit(ActorSystem("test")) with WordSpec wi
 
       "turn capsLock off" in {
         capsLock.expectMsg(TurnOff)
-        capsLock.expectNoMsg(activeTime - error)
+        capsLock.expectNoMsg(activeTime)
         actor.stateName should be(Stopped)
       }
     }
