@@ -30,5 +30,5 @@ class JenkinsServerImpl(url: String) extends JenkinsServer {
   }
 
   private def statusUrl(buildName: String) =
-    new URL(s"$url/job/$buildName/api/json")
+    new URL(s"$url/job/$buildName/api/givenJson")
 }

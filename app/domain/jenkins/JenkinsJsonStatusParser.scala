@@ -13,16 +13,17 @@ object JenkinsJsonStatusParserImpl extends JenkinsJsonStatusParser {
   override def parse(json: JsValue) =
     BuildStatus(isFailed(json), isInProgress(json))
 
-  private def isFailed(json: JsValue): Boolean = {
-    val lastBuildNumber = (json \ "lastBuild" \ "number").as[Int]
-    val lastSuccessfulBuildOption = (json \ "lastSuccessfulBuild" \ "number").asOpt[Int]
+  private def isFailed(json: JsValue) =
+    lastCompletedBuild(json) != lastSuccessfulBuild(json)
 
-    lastSuccessfulBuildOption match {
-      case Some(lastSuccessfulBuild) => lastSuccessfulBuild != lastBuildNumber
-      case None => true
-    }
-  }
+  private def isInProgress(json: JsValue) =
+    isInQueue(json) || (lastBuild(json) != lastCompletedBuild(json))
 
-  private def isInProgress(json: JsValue): Boolean =
-    (json \ "inQueue").asOpt[Boolean].getOrElse(false)
+  def isInQueue(json: JsValue) = (json \ "inQueue").asOpt[Boolean].getOrElse(false)
+
+  private def lastBuild(json: JsValue) = (json \ "lastBuild" \ "number").asOpt[Int]
+
+  private def lastSuccessfulBuild(json: JsValue): Option[Int] = (json \ "lastSuccessfulBuild" \ "number").asOpt[Int]
+
+  private def lastCompletedBuild(json: JsValue): Option[Int] = (json \ "lastCompletedBuild" \ "number").asOpt[Int]
 }

@@ -16,7 +16,7 @@ class BeaconLightActorTest extends WordSpec with ShouldMatchers {
 
   val activeTime = (5 milli)
   val sleepingTime = (8 milli)
-  val error = (1 milli)
+  val error = (2 milli)
 
   "Stopped Beacon Light Actor" when {
     "activated" should {
