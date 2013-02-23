@@ -2,35 +2,30 @@ package actors
 
 import akka.testkit.{TestProbe, TestActorRef, TestKit}
 import akka.actor.ActorSystem
-import jenkins.JenkinsCommands
+import jenkins.{ReadStatus, JenkinsBuildActorFactory}
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
 import StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses, RegisterObservedBuild}
 import domain.{Build, BuildStatus, BuildIdentifier}
-import JenkinsCommands.ReadBuildStatus
+import support.ForwardingActorProps
 
 class StatusReaderActorTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
 
   private val buildIdentifier = BuildIdentifier("success build")
-  private val successfulBuild: BuildStatus = BuildStatus(false, false)
+  private val successfulBuild = Build(buildIdentifier, BuildStatus(false, false))
   private val secondBuildIdentifier = BuildIdentifier("failed build")
-  private val failedBuild: BuildStatus = BuildStatus(true, false)
+  private val failedBuild = Build(secondBuildIdentifier, BuildStatus(true, false))
 
-  private val statusReader = TestProbe()
+  private val childActor = TestProbe()
 
-  "Status Reader" when {
-    val actor = TestActorRef(new StatusReaderActor(statusReader.ref))
-
-    "registering new Build" should {
-      actor ! RegisterObservedBuild(buildIdentifier)
-
-      "append it to builds set" in {
-        actor.underlyingActor.observedBuilds should (contain(buildIdentifier) and have size (1))
-      }
-    }
+  trait MockedJenkinsBuildActorFactory extends JenkinsBuildActorFactory {
+    def newChildActor(buildIdentifier: BuildIdentifier) = ForwardingActorProps(childActor)
   }
+
+  implicit val sender = testActor
+
   "Status Reader with registered builds" when {
-    val actor = TestActorRef(new StatusReaderActor(statusReader.ref))
+    val actor = TestActorRef(new StatusReaderActor with MockedJenkinsBuildActorFactory)
 
     actor ! RegisterObservedBuild(buildIdentifier)
     actor ! RegisterObservedBuild(secondBuildIdentifier)
@@ -40,14 +35,13 @@ class StatusReaderActorTest extends TestKit(ActorSystem("test")) with WordSpec w
       actor ! ReadBuildsStatuses
 
       "obtain status for each of builds" in {
-        statusReader.expectMsg(ReadBuildStatus(buildIdentifier))
-        statusReader.reply(successfulBuild)
-        statusReader.expectMsg(ReadBuildStatus(secondBuildIdentifier))
-        statusReader.reply(failedBuild)
+        childActor.expectMsg(ReadStatus)
+        childActor.reply(successfulBuild)
+        childActor.expectMsg(ReadStatus)
+        childActor.reply(failedBuild)
       }
       "return builds summary" in {
-        expectMsg(BuildsStatusSummary(Set(Build(buildIdentifier, successfulBuild),
-          Build(secondBuildIdentifier, failedBuild))))
+        expectMsg(BuildsStatusSummary(Set(successfulBuild, failedBuild)))
       }
     }
   }

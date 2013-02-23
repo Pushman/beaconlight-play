@@ -3,11 +3,9 @@ package controllers
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
 import domain._
-import domain.jenkins.{JenkinsJsonStatusParserImpl, JenkinsServerImpl}
+import domain.jenkins.{JenkinsBuildStatusProvider, JenkinsJsonStatusParserImpl, JenkinsServerImpl}
 import akka.actor.{ActorLogging, Actor, Props}
 import actors._
-import domain.BuildIdentifier
-import play.api.mvc.AsyncResult
 import play.api.mvc.SimpleResult
 import StatusReaderCommands.ReadBuildsStatuses
 import akka.pattern.ask
@@ -25,7 +23,7 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
-import actors.jenkins.JenkinsActor
+import actors.jenkins.{JenkinsBuildActor, JenkinsBuildActorFactory}
 
 object Application extends Controller {
 
@@ -33,12 +31,15 @@ object Application extends Controller {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   implicit val timeout = Timeout(5 seconds)
-  val activeTime = (5 seconds)
-  val sleepingTime = (5 seconds)
+  private val activeTime = (5 seconds)
+  private val sleepingTime = (5 seconds)
 
-  val jenkinsServer = new JenkinsServerImpl("http://cms-ci:28080")
-  val jenkinsActor = Akka.system.actorOf(Props(new JenkinsActor(jenkinsServer, JenkinsJsonStatusParserImpl) with LoggedActor))
-  val statusReader = Akka.system.actorOf(Props(new StatusReaderActor(jenkinsActor) with LoggedActor))
+  private val jenkinsServer = new JenkinsServerImpl("http://cms-ci:28080")
+  private val statusReader = Akka.system.actorOf(Props(new StatusReaderActor with JenkinsBuildActorFactory with LoggedActor {
+    def newChildActor(buildIdentifier: BuildIdentifier) = Props(new JenkinsBuildActor(buildIdentifier) with JenkinsBuildStatusProvider with LoggedActor {
+      def provideBuildStatus(build: BuildIdentifier) = jenkinsServer.fetchStatus(build).map(JenkinsJsonStatusParserImpl.parse)
+    })
+  }))
 
   statusReader ! RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar"))
   statusReader ! RegisterObservedBuild(BuildIdentifier("transfolio-cms-server"))
@@ -54,7 +55,7 @@ object Application extends Controller {
   }))
   private val beaconLightStrategy = new BeaconLightStrategyImpl
 
-  val beaconLight = null //Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
+  val beaconLight = Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
   val buildManager = Akka.system.actorOf(Props(new BuildsManagerActor(beaconLight, statusReader, beaconLightStrategy)))
 
   def index = Action {
@@ -87,8 +88,7 @@ object Application extends Controller {
     readBuildSummary.map(summary =>
       Ok(views.html.index(summary.builds, form))
     ).recover({
-      case _: UnknownHostException => InternalServerError("Jenkins host unknown or unavailible")
-      case _ => InternalServerError("Unable to ?")
+      case _: UnknownHostException => InternalServerError("Jenkins host unknown or unavailable")
     })
 
   private def readBuildSummary =

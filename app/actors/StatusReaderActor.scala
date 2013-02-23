@@ -1,32 +1,34 @@
 package actors
 
 import akka.actor.{ActorRef, Actor}
-import akka.pattern.{ask, pipe}
+import akka.pattern.pipe
 import concurrent.Future
 import akka.util.Timeout
 import concurrent.duration._
-import domain.{Build, BuildStatus, BuildIdentifier}
-import jenkins.JenkinsCommands
-import JenkinsCommands.ReadBuildStatus
+import domain.{Build, BuildIdentifier}
+import jenkins.{ReadStatus, JenkinsBuildActorFactory}
 import StatusReaderCommands._
+import akka.pattern.ask
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class StatusReaderActor(jenkins: ActorRef) extends Actor {
+trait StatusReaderActor extends Actor {
+  this: Actor with JenkinsBuildActorFactory =>
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  var observedBuilds = Set[BuildIdentifier]()
   implicit val timeout = Timeout(5 seconds)
 
   override def receive = {
-    case RegisterObservedBuild(build) ⇒
-      observedBuilds += build
+    case RegisterObservedBuild(buildIdentifier) ⇒
+      context.actorOf(newChildActor(buildIdentifier))
 
     case ReadBuildsStatuses ⇒
-      Future.sequence(observedBuilds.map(readBuildStatus)).map(BuildsStatusSummary) pipeTo sender
+      readBuildsStatuses pipeTo sender
   }
 
-  private def readBuildStatus(identifier: BuildIdentifier) =
-    (jenkins ? ReadBuildStatus(identifier)).mapTo[BuildStatus].map(status => Build(identifier, status))
+  def readBuildsStatuses =
+    Future.sequence(context.children.map(readBuildStatus)).map(builds ⇒ BuildsStatusSummary(builds.toSet))
+
+  private def readBuildStatus(actor: ActorRef) =
+    (actor ? ReadStatus).mapTo[Build]
 }
 
 object StatusReaderCommands {

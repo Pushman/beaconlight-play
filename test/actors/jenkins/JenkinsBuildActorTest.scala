@@ -21,8 +21,7 @@ class JenkinsBuildActorTest extends TestKit(ActorSystem("test")) with WordSpec w
   implicit val sender = testActor
 
   "Jenkins Build Actor" when {
-    val actor = TestActorRef(new JenkinsBuildActor with MockedJenkinsBuildStatusProvider with LoggedActor)
-    actor ! SetBuildIdentifier(buildIdentifier)
+    val actor = TestActorRef(new JenkinsBuildActor(buildIdentifier) with MockedJenkinsBuildStatusProvider with LoggedActor)
 
     "getting its status" should {
       actor ! ReadStatus
