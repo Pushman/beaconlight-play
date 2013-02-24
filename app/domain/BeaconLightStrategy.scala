@@ -1,8 +1,8 @@
 package domain
 
-import actors.{StatusReaderCommands, BeaconLightCommands}
+import actors.{JenkinsStatusReaderCommands, BeaconLightCommands}
 import BeaconLightCommands.{BeaconLightAction, Stop, Activate}
-import StatusReaderCommands.BuildsStatusSummary
+import JenkinsStatusReaderCommands.BuildsStatusSummary
 
 trait BeaconLightStrategy {
   def commandFor(builds: BuildsStatusSummary): BeaconLightAction

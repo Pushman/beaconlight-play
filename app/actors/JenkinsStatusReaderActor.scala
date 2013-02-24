@@ -6,19 +6,18 @@ import concurrent.Future
 import akka.util.Timeout
 import concurrent.duration._
 import domain.{Build, BuildIdentifier}
-import jenkins.{ReadStatus, JenkinsBuildActorFactory}
-import StatusReaderCommands._
+import JenkinsStatusReaderCommands._
 import akka.pattern.ask
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait StatusReaderActor extends Actor {
+trait JenkinsStatusReaderActor extends Actor {
   this: Actor with JenkinsBuildActorFactory =>
 
   implicit val timeout = Timeout(5 seconds)
 
   override def receive = {
     case RegisterObservedBuild(buildIdentifier) ⇒
-      context.actorOf(newChildActor(buildIdentifier))
+      context.actorOf(newJenkinsBuildActor(buildIdentifier))
 
     case ReadBuildsStatuses ⇒
       readBuildsStatuses pipeTo sender
@@ -31,7 +30,7 @@ trait StatusReaderActor extends Actor {
     (actor ? ReadStatus).mapTo[Build]
 }
 
-object StatusReaderCommands {
+object JenkinsStatusReaderCommands {
 
   case class RegisterObservedBuild(identifier: BuildIdentifier)
 

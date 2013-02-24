@@ -7,23 +7,22 @@ import domain.jenkins.{JenkinsBuildStatusProvider, JenkinsJsonStatusParserImpl, 
 import akka.actor.{ActorLogging, Actor, Props}
 import actors._
 import play.api.mvc.SimpleResult
-import StatusReaderCommands.ReadBuildsStatuses
+import JenkinsStatusReaderCommands.ReadBuildsStatuses
 import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.duration._
 import util.LoggedActor
-import actors.{StatusReaderActor, BeaconLightActor, BuildsManagerCommands, BuildsManagerActor}
+import actors.{JenkinsStatusReaderActor, BeaconLightActor, BuildsManagerCommands, BuildsManagerActor}
 import BuildsManagerCommands.CheckStatus
-import StatusReaderCommands.RegisterObservedBuild
+import JenkinsStatusReaderCommands.RegisterObservedBuild
 import domain.BuildIdentifier
 import play.api.mvc.AsyncResult
-import StatusReaderCommands.BuildsStatusSummary
+import JenkinsStatusReaderCommands.BuildsStatusSummary
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
-import actors.jenkins.{JenkinsBuildActor, JenkinsBuildActorFactory}
 
 object Application extends Controller {
 
@@ -35,8 +34,8 @@ object Application extends Controller {
   private val sleepingTime = (5 seconds)
 
   private val jenkinsServer = new JenkinsServerImpl("http://cms-ci:28080")
-  private val statusReader = Akka.system.actorOf(Props(new StatusReaderActor with JenkinsBuildActorFactory with LoggedActor {
-    def newChildActor(buildIdentifier: BuildIdentifier) = Props(new JenkinsBuildActor(buildIdentifier) with JenkinsBuildStatusProvider with LoggedActor {
+  private val statusReader = Akka.system.actorOf(Props(new JenkinsStatusReaderActor with JenkinsBuildActorFactory with LoggedActor {
+    def newJenkinsBuildActor(buildIdentifier: BuildIdentifier) = Props(new JenkinsBuildActor(buildIdentifier) with JenkinsBuildStatusProvider with LoggedActor {
       def provideBuildStatus(build: BuildIdentifier) = jenkinsServer.fetchStatus(build).map(JenkinsJsonStatusParserImpl.parse)
     })
   }))

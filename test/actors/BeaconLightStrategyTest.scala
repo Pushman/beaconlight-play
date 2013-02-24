@@ -5,7 +5,7 @@ import akka.actor.ActorSystem
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
 import BeaconLightCommands.{BeaconLightAction, Stop, Activate}
-import StatusReaderCommands.BuildsStatusSummary
+import JenkinsStatusReaderCommands.BuildsStatusSummary
 import domain.{BeaconLightStrategyImpl, BuildStatus, Build, BuildIdentifier}
 
 class BeaconLightStrategyTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
@@ -31,5 +31,5 @@ class BeaconLightStrategyTest extends TestKit(ActorSystem("test")) with WordSpec
         }
       }
     }
-  }  
+  }
 }

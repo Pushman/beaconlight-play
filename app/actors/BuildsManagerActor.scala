@@ -6,7 +6,7 @@ import BuildsManagerCommands._
 import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.Future
-import StatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
+import JenkinsStatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 import domain.BeaconLightStrategy
 import akka.pattern.pipe
 

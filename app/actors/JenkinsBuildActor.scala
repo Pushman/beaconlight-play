@@ -1,6 +1,6 @@
-package actors.jenkins
+package actors
 
-import akka.actor.Actor
+import akka.actor.{Props, Actor}
 import akka.pattern.pipe
 import domain.jenkins.JenkinsBuildStatusProvider
 import domain.{Build, BuildIdentifier}
@@ -13,6 +13,10 @@ class JenkinsBuildActor(buildIdentifier: BuildIdentifier) extends Actor {
     case ReadStatus ⇒
       provideBuildStatus(buildIdentifier).map(status ⇒ Build(buildIdentifier, status)) pipeTo sender
   }
+}
+
+trait JenkinsBuildActorFactory {
+  def newJenkinsBuildActor(buildIdentifier: BuildIdentifier): Props
 }
 
 sealed trait JenkinsBuildCommand

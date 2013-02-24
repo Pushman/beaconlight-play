@@ -1,4 +1,4 @@
-package actors.jenkins
+package actors
 
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
