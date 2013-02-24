@@ -3,10 +3,9 @@ package controllers
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
 import domain._
-import domain.jenkins.{JenkinsBuildStatusProvider, JenkinsJsonStatusParserImpl, JenkinsServerImpl}
-import akka.actor.{ActorLogging, Actor, Props}
+import domain.jenkins.{JenkinsJsonStatusParserImpl, JenkinsServerImpl}
+import akka.actor.{ActorRef, ActorLogging, Actor, Props}
 import actors._
-import play.api.mvc.SimpleResult
 import JenkinsStatusReaderCommands.ReadBuildsStatuses
 import akka.pattern.ask
 import akka.util.Timeout
@@ -14,34 +13,48 @@ import concurrent.duration._
 import util.LoggedActor
 import actors.{JenkinsStatusReaderActor, BeaconLightActor, BuildsManagerCommands, BuildsManagerActor}
 import BuildsManagerCommands.CheckStatus
-import JenkinsStatusReaderCommands.RegisterObservedBuild
-import domain.BuildIdentifier
-import play.api.mvc.AsyncResult
-import JenkinsStatusReaderCommands.BuildsStatusSummary
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
+import org.eligosource.eventsourced.core._
+import java.io.File
+import domain.BuildIdentifier
+import org.eligosource.eventsourced.core.Message
+import play.api.mvc.AsyncResult
+import play.api.mvc.SimpleResult
+import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
+import org.eligosource.eventsourced.journal.journalio.JournalioJournalProps
+import actors.JenkinsStatusReaderCommands.BuildsStatusSummary
 
 object Application extends Controller {
 
   import play.api.Play.current
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  implicit val actorRefFactory = Akka.system
+
+  def journal: ActorRef = Journal(JournalioJournalProps(new File("target/example-1")))(Akka.system)
+
+  def eventsourcedExtension = EventsourcingExtension(Akka.system, journal)
+
   implicit val timeout = Timeout(5 seconds)
   private val activeTime = (5 seconds)
   private val sleepingTime = (5 seconds)
 
-  private val jenkinsServer = new JenkinsServerImpl("http://cms-ci:28080")
-  private val statusReader = Akka.system.actorOf(Props(new JenkinsStatusReaderActor with JenkinsBuildActorFactory with LoggedActor {
-    def newJenkinsBuildActor(buildIdentifier: BuildIdentifier) = Props(new JenkinsBuildActor(buildIdentifier) with JenkinsBuildStatusProvider with LoggedActor {
-      def provideBuildStatus(build: BuildIdentifier) = jenkinsServer.fetchStatus(build).map(JenkinsJsonStatusParserImpl.parse)
-    })
+  private val statusReader = eventsourcedExtension.processorOf(Props(new JenkinsStatusReaderActor
+    with DefaultJenkinsBuildActorFactory with Receiver with Eventsourced with LoggedActor {
+
+    def jenkinsServer = new JenkinsServerImpl("http://cms-ci:28080")
+
+    def jsonParser = JenkinsJsonStatusParserImpl
+
+    def id = 1
   }))
 
-  statusReader ! RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar"))
-  statusReader ! RegisterObservedBuild(BuildIdentifier("transfolio-cms-server"))
+  statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar")))
+  statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server")))
 
   val capsLock = Akka.system.actorOf(Props(new Actor with ActorLogging {
 
@@ -56,6 +69,8 @@ object Application extends Controller {
 
   val beaconLight = Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
   val buildManager = Akka.system.actorOf(Props(new BuildsManagerActor(beaconLight, statusReader, beaconLightStrategy)))
+
+  eventsourcedExtension.recover()
 
   def index = Action {
     AsyncResult {
@@ -79,7 +94,7 @@ object Application extends Controller {
   }
 
   private def onValidBuildName(buildName: String) = {
-    statusReader ! RegisterObservedBuild(BuildIdentifier(buildName))
+    statusReader ! Message(RegisterObservedBuild(BuildIdentifier(buildName)))
     Promise.successful(Redirect(routes.Application.index())).future
   }
 
