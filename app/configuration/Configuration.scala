@@ -1,10 +1,16 @@
 package configuration
 
 import domain.jenkins.{JenkinsJsonStatusParser, JenkinsServer}
+import concurrent.duration.FiniteDuration
+import domain.BeaconLightStrategy
 
 trait Configuration {
 
-  def jenkinsJsonStatusParser: JenkinsJsonStatusParser
+  val activeTime: FiniteDuration
+  val sleepingTime: FiniteDuration
 
-  def jenkinsServer: JenkinsServer
+  val jenkinsJsonStatusParser: JenkinsJsonStatusParser
+  val jenkinsServer: JenkinsServer
+
+  val beaconLightStrategy: BeaconLightStrategy
 }

@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.Actor
 import concurrent.duration._
 import BuildsManagerCommands._
 import akka.pattern.ask
@@ -9,14 +9,18 @@ import concurrent.Future
 import JenkinsStatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 import domain.BeaconLightStrategy
 import akka.pattern.pipe
+import configuration.ActorPathKeys
 
-class BuildsManagerActor(beaconLight: ActorRef, statusReader: ActorRef, beaconLightStrategy: BeaconLightStrategy) extends Actor {
+class BuildsManagerActor(beaconLightStrategy: BeaconLightStrategy) extends Actor {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
   implicit val timeout = Timeout(5 seconds)
 
-  var enabled: Boolean = true
+  private val beaconLight = context.actorFor(ActorPathKeys.beaconLight.path)
+  private val statusReader = context.actorFor(ActorPathKeys.statusReader.path)
+
+  private var enabled: Boolean = true
 
   override def receive = {
     case CheckStatus if enabled ⇒

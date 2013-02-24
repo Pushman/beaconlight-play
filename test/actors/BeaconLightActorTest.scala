@@ -1,18 +1,17 @@
 package actors
 
 import concurrent.duration._
-import akka.testkit.{TestProbe, TestKit, TestFSMRef}
+import akka.testkit.TestFSMRef
 import akka.actor.ActorSystem
 import org.scalatest.WordSpec
 import BeaconLightCommands.{Stop, Activate}
 import org.scalatest.matchers.ShouldMatchers
 import CapsLockCommands.{TurnOff, TurnOn}
 import BeaconLightStates.{Stopped, Sleeping, Active}
-import util.LoggedActor
+import support.NamedTestProbe
+import configuration.ActorPathKeys
 
 class BeaconLightActorTest extends WordSpec with ShouldMatchers {
-
-  implicit val system = ActorSystem("test")
 
   val activeTime = (5 milli)
   val sleepingTime = (8 milli)
@@ -20,8 +19,9 @@ class BeaconLightActorTest extends WordSpec with ShouldMatchers {
 
   "Stopped Beacon Light Actor" when {
     "activated" should {
-      val capsLock = TestProbe()
-      val actor = TestFSMRef(new BeaconLightActor(capsLock.ref, activeTime, sleepingTime))
+      implicit val system = ActorSystem("test")
+      val capsLock = NamedTestProbe(ActorPathKeys.capsLock)
+      val actor = TestFSMRef(new BeaconLightActor(activeTime, sleepingTime))
 
       "turn capsLock on" in {
         actor ! Activate
@@ -41,8 +41,9 @@ class BeaconLightActorTest extends WordSpec with ShouldMatchers {
     }
   }
   "Activated Beacon Light Actor" when {
-    val capsLock = TestProbe()
-    val actor = TestFSMRef(new BeaconLightActor(capsLock.ref, activeTime, sleepingTime))
+    implicit val system = ActorSystem("test")
+    val capsLock = NamedTestProbe(ActorPathKeys.capsLock)
+    val actor = TestFSMRef(new BeaconLightActor(activeTime, sleepingTime))
     actor.setState(Active)
     actor.stateName should be(Active)
     capsLock.expectMsg(TurnOn)

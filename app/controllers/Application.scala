@@ -2,14 +2,13 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
-import domain._
-import akka.actor.{ActorRef, ActorLogging, Actor, Props}
+import akka.actor.ActorRef
 import actors._
 import JenkinsStatusReaderCommands.ReadBuildsStatuses
 import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.duration._
-import actors.{BeaconLightActor, BuildsManagerCommands, BuildsManagerActor}
+import actors.BuildsManagerCommands
 import BuildsManagerCommands.CheckStatus
 import play.api.data._
 import play.api.data.Forms._
@@ -32,38 +31,24 @@ object Application extends Controller {
   import play.api.Play.current
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val actorsConfiguration = new DefaultActorsConfiguration {
+  private val actorsConfiguration = new DefaultActorsConfiguration {
     def configuration = new ProductionConfiguration {}
   }
 
-  implicit val actorRefFactory = Akka.system
+  private implicit val actorRefFactory = Akka.system
 
-  def journal: ActorRef = Journal(JournalioJournalProps(new File("target/example-1")))(Akka.system)
+  private val journal: ActorRef = Journal(JournalioJournalProps(new File("target/example-1")))(Akka.system)
 
-  def eventsourcedExtension = EventsourcingExtension(Akka.system, journal)
+  private val eventsourcedExtension = EventsourcingExtension(Akka.system, journal)
 
-  implicit val timeout = Timeout(5 seconds)
-  private val activeTime = (5 seconds)
-  private val sleepingTime = (5 seconds)
+  private implicit val timeout = Timeout(5 seconds)
 
   private val statusReader = eventsourcedExtension.processorOf(actorsConfiguration.actorByPath(ActorPathKeys.statusReader))
 
   statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar")))
   statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server")))
 
-  val capsLock = Akka.system.actorOf(Props(new Actor with ActorLogging {
-
-    def receive = {
-      case msg => {
-        log.info(msg.toString)
-        //Toolkit.getDefaultToolkit.setLockingKeyState(VK_CAPS_LOCK, true)
-      }
-    }
-  }))
-  private val beaconLightStrategy = new BeaconLightStrategyImpl
-
-  val beaconLight = Akka.system.actorOf(Props(new BeaconLightActor(capsLock, activeTime, sleepingTime)))
-  val buildManager = Akka.system.actorOf(Props(new BuildsManagerActor(beaconLight, statusReader, beaconLightStrategy)))
+  private val buildManager = Akka.system.actorOf(actorsConfiguration.actorByPath(ActorPathKeys.buildsManager))
 
   eventsourcedExtension.recover()
 

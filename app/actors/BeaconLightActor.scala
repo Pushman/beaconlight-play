@@ -1,13 +1,16 @@
 package actors
 
-import akka.actor.{ActorRef, FSM, Actor}
+import akka.actor.{FSM, Actor}
 import concurrent.duration._
 import BeaconLightStates._
 import BeaconLightCommands._
 import CapsLockCommands.{TurnOff, TurnOn}
+import configuration.ActorPathKeys
 
-class BeaconLightActor(capsLock: ActorRef, activeTime: FiniteDuration, sleepingTime: FiniteDuration) 
+class BeaconLightActor(activeTime: FiniteDuration, sleepingTime: FiniteDuration)
   extends Actor with FSM[State, Null] {
+
+  val capsLock = context.actorFor(ActorPathKeys.capsLock.path)
 
   startWith(Stopped, null)
 
@@ -58,11 +61,11 @@ object BeaconLightStates {
 object BeaconLightCommands {
 
   sealed trait BeaconLightAction
-  
+
   case object Activate extends BeaconLightAction
 
   case object Stop extends BeaconLightAction
-  
+
   case object Sleep extends BeaconLightAction
 
 }

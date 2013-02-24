@@ -1,7 +1,7 @@
 package actors
 
 import concurrent.duration._
-import akka.testkit.{TestProbe, TestActorRef, TestKit}
+import akka.testkit.{TestActorRef, TestKit}
 import akka.actor.ActorSystem
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
@@ -11,17 +11,19 @@ import JenkinsStatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 import org.mockito.Mockito.{mock, verify}
 import org.mockito.BDDMockito.given
 import domain.{BuildStatus, Build, BuildIdentifier, BeaconLightStrategy}
+import configuration.ActorPathKeys
+import support.NamedTestProbe
 
 class BuildsManagerActorTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
 
   private val buildStatusSummary = BuildsStatusSummary(Set(Build(BuildIdentifier("some build"), BuildStatus(false, false))))
 
-  private val beaconLight = TestProbe()
-  private val statusReader = TestProbe()
+  private val beaconLight = NamedTestProbe(ActorPathKeys.beaconLight)
+  private val statusReader = NamedTestProbe(ActorPathKeys.statusReader)
   private val beaconLightStrategy = mock(classOf[BeaconLightStrategy])
 
   "Enabled Builds Manager" when {
-    val actor = TestActorRef(new BuildsManagerActor(beaconLight.ref, statusReader.ref, beaconLightStrategy))
+    val actor = TestActorRef(new BuildsManagerActor(beaconLightStrategy))
     given(beaconLightStrategy.commandFor(buildStatusSummary)).willReturn(Stop)
 
     "checking for build status" should {
@@ -40,7 +42,7 @@ class BuildsManagerActorTest extends TestKit(ActorSystem("test")) with WordSpec 
     }
   }
   "Disabled Builds Manager" when {
-    val actor = TestActorRef(new BuildsManagerActor(beaconLight.ref, statusReader.ref, beaconLightStrategy))
+    val actor = TestActorRef(new BuildsManagerActor(beaconLightStrategy))
     actor ! Disable
 
     "checking for build status" should {
