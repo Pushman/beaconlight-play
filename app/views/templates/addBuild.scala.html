@@ -4,6 +4,7 @@
 
 @helper.form(action = routes.Application.addBuild) {
 
-    @helper.inputText(form("buildName"), '_label -> "Build name")
+@helper.inputText(form("buildName"), '_label -> "Build name")
 
+<button class="btn btn-primary">Add</button>
 }

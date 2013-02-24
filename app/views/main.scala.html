@@ -3,28 +3,22 @@
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-    </head>
-    <body>
+<head>
+    <title>@title</title>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at(" bootstrap
+    /css/bootstrap.css")">
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at(" images
+    /favicon.png")">
+</head>
+<body>
 
-    <div class="container-narrow">
-        <div class="container">
-            <div class="page-header">
-                <h1>@title</h1>
-            </div>
-            @content
-            
-            <div>
-                @helper.form(action = routes.Application.checkStatus) {
-                    <button class="btn">
-                        Force status check
-                    </button>
-                }
-            </div>
+<div class="container-narrow">
+    <div class="container">
+        <div class="page-header">
+            <h1>@title</h1>
         </div>
+        @content
     </div>
-    </body>
+</div>
+</body>
 </html>

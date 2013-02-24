@@ -1,5 +1,5 @@
 @(builds: Set[domain.Build])
-        
+
 <h2>Builds list</h2>
 
 <table class="table table-striped">
@@ -26,3 +26,11 @@
     }
     </tbody>
 </table>
+
+<div>
+    @helper.form(action = routes.Application.checkStatus) {
+    <button class="btn">
+        Force status check
+    </button>
+    }
+</div>
