@@ -14,43 +14,32 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
+import configuration._
+import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
 import domain.BuildIdentifier
 import org.eligosource.eventsourced.core.Message
 import play.api.mvc.AsyncResult
-import play.api.mvc.SimpleResult
-import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
 import actors.JenkinsStatusReaderCommands.BuildsStatusSummary
-import configuration.{DefaultActorsFactory, DefaultActorsConfiguration, ActorPathKeys, ProductionConfiguration}
+import play.api.mvc.SimpleResult
 
 object Application extends Controller {
 
   import play.api.Play.current
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  private val configuration = new ProductionConfiguration {
-    val system = Akka.system
+  private val setup = new DefaultSetup with Configurable {
+
+    def configuration = new ProductionConfiguration {
+      val system = Akka.system
+    }
   }
 
-  private val actorsFactory = new DefaultActorsFactory with DefaultActorsConfiguration {
-    def configuration = Application.configuration
-  }
-
-  private implicit val actorRefFactory = Akka.system
+  setup.run()
 
   private implicit val timeout = Timeout(5 seconds)
 
-  actorsFactory.createActor(ActorPathKeys.capsLock)
-  actorsFactory.createActor(ActorPathKeys.beaconLight)
-  private val statusReader = actorsFactory.createActor(ActorPathKeys.statusReader)
-
-  statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar")))
-  statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server")))
-
-  private val buildManager = actorsFactory.createActor(ActorPathKeys.buildsManager)
-
-  configuration.eventsourcedExtension.recover()
-  
-  buildManager ! CheckStatus
+  private val statusReader = Akka.system.actorFor(ActorPathKeys.statusReader.path)
+  private val buildManager = Akka.system.actorFor(ActorPathKeys.buildsManager.path)
 
   def index = Action {
     AsyncResult {
