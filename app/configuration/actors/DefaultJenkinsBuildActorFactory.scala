@@ -1,11 +1,13 @@
-package configuration
+package configuration.actors
 
 import actors.{JenkinsBuildActor, JenkinsBuildActorFactory}
 import domain.BuildIdentifier
 import akka.actor.Props
 import domain.jenkins.JenkinsBuildStatusProvider
+import configuration.configuration.Configurable
 
-trait DefaultJenkinsBuildActorFactory extends JenkinsBuildActorFactory with Configurable {
+trait DefaultJenkinsBuildActorFactory extends JenkinsBuildActorFactory {
+  this: JenkinsBuildActorFactory with Configurable =>
 
   import scala.concurrent.ExecutionContext.Implicits.global
 

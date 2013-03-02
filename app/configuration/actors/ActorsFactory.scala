@@ -1,6 +1,6 @@
-package configuration
+package configuration.actors
 
-import configuration.ActorPathKeys.ActorPathKey
+import ActorPathKeys.ActorPathKey
 import akka.actor.ActorRef
 
 trait ActorsFactory {

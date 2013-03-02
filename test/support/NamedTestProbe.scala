@@ -2,7 +2,8 @@ package support
 
 import akka.testkit.TestProbe
 import akka.actor.ActorSystem
-import configuration.ActorPathKeys.ActorPathKey
+import configuration.actors.ActorPathKeys
+import ActorPathKeys.ActorPathKey
 
 object NamedTestProbe {
 

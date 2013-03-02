@@ -1,14 +1,16 @@
-package configuration
+package configuration.setup
 
 import org.eligosource.eventsourced.core.Message
 import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
 import domain.BuildIdentifier
 import actors.BuildsManagerCommands.CheckStatus
+import configuration.actors.{DefaultActorsFactory, ActorPathKeys}
+import configuration.configuration.Configurable
 
 trait DefaultSetup extends Setup {
   this: Setup with Configurable =>
 
-  private val actorsFactory = new DefaultActorsFactory with DefaultActorsConfiguration {
+  private val actorsFactory = new DefaultActorsFactory with Configurable {
     def configuration = DefaultSetup.this.configuration
   }
 

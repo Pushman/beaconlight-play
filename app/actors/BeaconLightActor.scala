@@ -5,7 +5,7 @@ import concurrent.duration._
 import BeaconLightStates._
 import BeaconLightCommands._
 import CapsLockCommands.{TurnOff, TurnOn}
-import configuration.ActorPathKeys
+import configuration.actors.ActorPathKeys
 
 class BeaconLightActor(activeTime: FiniteDuration, sleepingTime: FiniteDuration)
   extends Actor with FSM[State, Null] {

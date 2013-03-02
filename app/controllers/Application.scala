@@ -2,8 +2,7 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
-import actors._
-import JenkinsStatusReaderCommands.ReadBuildsStatuses
+import actors.JenkinsStatusReaderCommands.{RegisterObservedBuild, BuildsStatusSummary, ReadBuildsStatuses}
 import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.duration._
@@ -15,12 +14,13 @@ import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
 import configuration._
-import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
+import actors.ActorPathKeys
+import configuration.{ProductionConfiguration, Configurable}
 import domain.BuildIdentifier
 import org.eligosource.eventsourced.core.Message
 import play.api.mvc.AsyncResult
-import actors.JenkinsStatusReaderCommands.BuildsStatusSummary
 import play.api.mvc.SimpleResult
+import setup.DefaultSetup
 
 object Application extends Controller {
 

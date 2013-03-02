@@ -1,4 +1,4 @@
-package configuration
+package configuration.actors
 
 import akka.actor.Props
 import ActorPathKeys._

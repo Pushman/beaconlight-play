@@ -9,7 +9,7 @@ import org.scalatest.matchers.ShouldMatchers
 import CapsLockCommands.{TurnOff, TurnOn}
 import BeaconLightStates.{Stopped, Sleeping, Active}
 import support.NamedTestProbe
-import configuration.ActorPathKeys
+import configuration.actors.ActorPathKeys
 
 class BeaconLightActorTest extends WordSpec with ShouldMatchers {
 

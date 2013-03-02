@@ -1,4 +1,4 @@
-package configuration
+package configuration.configuration
 
 import domain.jenkins.{JenkinsJsonStatusParser, JenkinsServer}
 import concurrent.duration.FiniteDuration

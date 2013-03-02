@@ -9,7 +9,7 @@ import concurrent.Future
 import JenkinsStatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 import domain.BeaconLightStrategy
 import akka.pattern.pipe
-import configuration.ActorPathKeys
+import configuration.actors.ActorPathKeys
 
 class BuildsManagerActor(beaconLightStrategy: BeaconLightStrategy) extends Actor {
 

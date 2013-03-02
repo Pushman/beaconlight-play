@@ -1,5 +1,4 @@
-package configuration
-
+package configuration.actors
 
 object ActorPathKeys {
 

@@ -1,9 +1,13 @@
-package configuration
+package configuration.actors
 
 import akka.actor.Props
-import configuration.ActorPathKeys._
+import configuration.actors
+import actors.ActorPathKeys._
+import configuration.configuration.Configurable
+import configuration.actors.ActorPathKeys.ActorPathKey
 
-trait DefaultActorsFactory extends ActorsFactory with ActorsConfiguration with Configurable {
+trait DefaultActorsFactory extends ActorsFactory with DefaultActorsConfiguration {
+  this: ActorsFactory with Configurable =>
 
   def createActor(path: ActorPathKey) =
     actorFactory(path)(actorProps(path), path.name)

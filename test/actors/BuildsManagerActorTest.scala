@@ -11,8 +11,8 @@ import JenkinsStatusReaderCommands.{BuildsStatusSummary, ReadBuildsStatuses}
 import org.mockito.Mockito.{mock, verify}
 import org.mockito.BDDMockito.given
 import domain.{BuildStatus, Build, BuildIdentifier, BeaconLightStrategy}
-import configuration.ActorPathKeys
 import support.NamedTestProbe
+import configuration.actors.ActorPathKeys
 
 class BuildsManagerActorTest extends TestKit(ActorSystem("test")) with WordSpec with ShouldMatchers {
 

@@ -1,4 +1,4 @@
-package configuration
+package configuration.configuration
 
 trait Configurable {
 
