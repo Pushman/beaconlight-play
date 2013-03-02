@@ -8,16 +8,7 @@ import util.LoggedActor
 
 trait DefaultActorsConfiguration extends ActorsConfiguration with Configurable {
 
-  def createActor(path: ActorPathKey) = actorFactory(path)(actorByPath(path), path.name)
-
-  private implicit val actorRefFactory = configuration.system
-
-  private def actorFactory(path: ActorPathKey)(props: Props, name: String) = path match {
-    case `statusReader` => configuration.eventsourcedExtension.processorOf(props, Some(name))
-    case _ => configuration.system.actorOf(props, name)
-  }
-
-  private def actorByPath(path: ActorPathKey): Props = Props(path match {
+  override def actorProps(path: ActorPathKey): Props = Props(path match {
     case `statusReader` ⇒ new JenkinsStatusReaderActor with DefaultJenkinsBuildActorFactory
       with Receiver with Eventsourced {
 

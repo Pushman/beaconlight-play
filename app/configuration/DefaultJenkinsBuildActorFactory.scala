@@ -7,6 +7,8 @@ import domain.jenkins.JenkinsBuildStatusProvider
 
 trait DefaultJenkinsBuildActorFactory extends JenkinsBuildActorFactory with Configurable {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   def newJenkinsBuildActor(buildIdentifier: BuildIdentifier) =
     Props(new JenkinsBuildActor(buildIdentifier) with JenkinsBuildStatusProvider {
 

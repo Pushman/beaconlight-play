@@ -20,7 +20,7 @@ import play.api.mvc.AsyncResult
 import play.api.mvc.SimpleResult
 import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
 import actors.JenkinsStatusReaderCommands.BuildsStatusSummary
-import configuration.{DefaultActorsConfiguration, ActorPathKeys, ProductionConfiguration}
+import configuration.{DefaultActorsFactory, DefaultActorsConfiguration, ActorPathKeys, ProductionConfiguration}
 
 object Application extends Controller {
 
@@ -31,7 +31,7 @@ object Application extends Controller {
     val system = Akka.system
   }
 
-  private val actorsConfiguration = new DefaultActorsConfiguration {
+  private val actorsFactory = new DefaultActorsFactory with DefaultActorsConfiguration {
     def configuration = Application.configuration
   }
 
@@ -39,16 +39,18 @@ object Application extends Controller {
 
   private implicit val timeout = Timeout(5 seconds)
 
-  actorsConfiguration.createActor(ActorPathKeys.capsLock)
-  actorsConfiguration.createActor(ActorPathKeys.beaconLight)
-  private val statusReader = actorsConfiguration.createActor(ActorPathKeys.statusReader)
+  actorsFactory.createActor(ActorPathKeys.capsLock)
+  actorsFactory.createActor(ActorPathKeys.beaconLight)
+  private val statusReader = actorsFactory.createActor(ActorPathKeys.statusReader)
 
   statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar")))
   statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server")))
 
-  private val buildManager = actorsConfiguration.createActor(ActorPathKeys.buildsManager)
+  private val buildManager = actorsFactory.createActor(ActorPathKeys.buildsManager)
 
   configuration.eventsourcedExtension.recover()
+  
+  buildManager ! CheckStatus
 
   def index = Action {
     AsyncResult {
