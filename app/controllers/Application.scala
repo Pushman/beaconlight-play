@@ -2,7 +2,6 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
-import akka.actor.ActorRef
 import actors._
 import JenkinsStatusReaderCommands.ReadBuildsStatuses
 import akka.pattern.ask
@@ -15,14 +14,11 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import concurrent.{Future, Promise}
 import java.net.UnknownHostException
-import org.eligosource.eventsourced.core._
-import java.io.File
 import domain.BuildIdentifier
 import org.eligosource.eventsourced.core.Message
 import play.api.mvc.AsyncResult
 import play.api.mvc.SimpleResult
 import actors.JenkinsStatusReaderCommands.RegisterObservedBuild
-import org.eligosource.eventsourced.journal.journalio.JournalioJournalProps
 import actors.JenkinsStatusReaderCommands.BuildsStatusSummary
 import configuration.{DefaultActorsConfiguration, ActorPathKeys, ProductionConfiguration}
 
@@ -31,26 +27,28 @@ object Application extends Controller {
   import play.api.Play.current
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  private val configuration = new ProductionConfiguration {
+    val system = Akka.system
+  }
+
   private val actorsConfiguration = new DefaultActorsConfiguration {
-    def configuration = new ProductionConfiguration {}
+    def configuration = Application.configuration
   }
 
   private implicit val actorRefFactory = Akka.system
 
-  private val journal: ActorRef = Journal(JournalioJournalProps(new File("target/example-1")))(Akka.system)
-
-  private val eventsourcedExtension = EventsourcingExtension(Akka.system, journal)
-
   private implicit val timeout = Timeout(5 seconds)
 
-  private val statusReader = eventsourcedExtension.processorOf(actorsConfiguration.actorByPath(ActorPathKeys.statusReader))
+  actorsConfiguration.createActor(ActorPathKeys.capsLock)
+  actorsConfiguration.createActor(ActorPathKeys.beaconLight)
+  private val statusReader = actorsConfiguration.createActor(ActorPathKeys.statusReader)
 
   statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server-sonar")))
   statusReader ! Message(RegisterObservedBuild(BuildIdentifier("transfolio-cms-server")))
 
-  private val buildManager = Akka.system.actorOf(actorsConfiguration.actorByPath(ActorPathKeys.buildsManager))
+  private val buildManager = actorsConfiguration.createActor(ActorPathKeys.buildsManager)
 
-  eventsourcedExtension.recover()
+  configuration.eventsourcedExtension.recover()
 
   def index = Action {
     AsyncResult {

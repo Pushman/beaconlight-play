@@ -1,9 +1,9 @@
 package configuration
 
-import akka.actor.Props
+import akka.actor.ActorRef
 import ActorPathKeys._
 
 trait ActorsConfiguration {
 
-  def actorByPath(path: ActorPathKey): Props
+  def createActor(path: ActorPathKey): ActorRef
 }
