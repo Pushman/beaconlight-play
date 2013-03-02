@@ -1,27 +1,12 @@
 package configuration
 
 import configuration.ActorPathKeys._
-import akka.actor.{ActorLogging, Actor, Props}
+import akka.actor.Props
 import actors._
 import org.eligosource.eventsourced.core.{Eventsourced, Receiver}
 import util.LoggedActor
-import domain.jenkins.JenkinsBuildStatusProvider
-import domain.BuildIdentifier
-import scala.concurrent.ExecutionContext.Implicits.global
 
-trait DefaultActorsConfiguration extends ActorsConfiguration {
-
-  def configuration: Configuration
-
-  trait DefaultJenkinsBuildStatusProvider extends JenkinsBuildStatusProvider {
-    def provideBuildStatus(build: BuildIdentifier) =
-      configuration.jenkinsServer.fetchStatus(build).map(configuration.jenkinsJsonStatusParser.parse)
-  }
-
-  trait DefaultJenkinsBuildActorFactory extends JenkinsBuildActorFactory {
-    def newJenkinsBuildActor(buildIdentifier: BuildIdentifier) =
-      Props(new JenkinsBuildActor(buildIdentifier) with DefaultJenkinsBuildStatusProvider)
-  }
+trait DefaultActorsConfiguration extends ActorsConfiguration with Configurable {
 
   def createActor(path: ActorPathKey) = actorFactory(path)(actorByPath(path), path.name)
 
@@ -35,7 +20,10 @@ trait DefaultActorsConfiguration extends ActorsConfiguration {
   private def actorByPath(path: ActorPathKey): Props = Props(path match {
     case `statusReader` ⇒ new JenkinsStatusReaderActor with DefaultJenkinsBuildActorFactory
       with Receiver with Eventsourced {
+
       def id = 1
+
+      def configuration = DefaultActorsConfiguration.this.configuration
     }
 
     case `buildsManager` ⇒
@@ -45,14 +33,6 @@ trait DefaultActorsConfiguration extends ActorsConfiguration {
       new BeaconLightActor(configuration.activeTime, configuration.sleepingTime) with LoggedActor
 
     case `capsLock` ⇒
-      new Actor with ActorLogging {
-
-        def receive = {
-          case msg => {
-            log.info(msg.toString)
-            //Toolkit.getDefaultToolkit.setLockingKeyState(VK_CAPS_LOCK, true)
-          }
-        }
-      }
+      new DummyCapsLockActor
   })
 }
